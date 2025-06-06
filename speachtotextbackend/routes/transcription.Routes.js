@@ -4,7 +4,8 @@ const multer = require('multer');
 const {
   uploadAudio,
   transcribeAudio,
-  exportTranscription
+  exportTranscription,
+  handleAudioChunk
 } = require('../controllers/transcription.controller');
 
 // Set up multer for file uploads
@@ -23,5 +24,6 @@ router.get('/status', (req, res) => {
 router.post('/upload', upload.single('audio'), uploadAudio);
 router.post('/transcribe', transcribeAudio);
 router.post('/export', exportTranscription);
+router.post('/chunk', upload.single('audio'), handleAudioChunk);
 
 module.exports = router;

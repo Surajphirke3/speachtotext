@@ -20,6 +20,8 @@ let audioContext;
 let analyser;
 let dataArray;
 let animationFrame;
+let socket;
+let currentTranscript = '';
 
 // Initialize audio visualization bars
 function createVisualizationBars() {
@@ -42,29 +44,71 @@ function showStatus(message, type = 'info') {
   }, 3000);
 }
 
-// Check if backend is available
+// Function to check backend status
 async function checkBackendStatus() {
   try {
-    const isAvailable = await window.backendAPI.checkBackendStatus();
-    if (!isAvailable) {
-      showStatus('Backend server is not available. Please make sure it is running on port 3000.', 'error');
-      return false;
+    const response = await fetch('http://localhost:3000/api/transcription/status');
+    if (!response.ok) {
+      throw new Error('Backend server is not responding');
     }
     return true;
   } catch (error) {
-    showStatus('Error connecting to backend server: ' + error.message, 'error');
+    showStatus('Error: Backend server is not available. Please make sure it is running on port 3000.', 'error');
     return false;
   }
 }
 
+// Initialize Socket.IO connection
+function initializeSocket() {
+  socket = io('http://localhost:3000', {
+    withCredentials: true
+  });
+
+  socket.on('connect', () => {
+    console.log('Connected to server');
+    showStatus('Connected to transcription server', 'success');
+  });
+
+  socket.on('disconnect', () => {
+    console.log('Disconnected from server');
+    showStatus('Disconnected from transcription server', 'error');
+  });
+
+  socket.on('transcription-result', (data) => {
+    if (data.transcript) {
+      currentTranscript += ' ' + data.transcript;
+      outputText.value = currentTranscript.trim();
+      // Auto-scroll to bottom
+      outputText.scrollTop = outputText.scrollHeight;
+    }
+  });
+
+  socket.on('transcription-error', (data) => {
+    showStatus('Error: ' + data.error, 'error');
+  });
+}
+
+// Initialize Socket.IO when the page loads
+document.addEventListener('DOMContentLoaded', () => {
+  initializeSocket();
+  showStatus('Ready to transcribe audio! Start by recording or uploading a file.', 'info');
+});
+
 // Start recording
 startBtn.addEventListener('click', async () => {
-  if (!await checkBackendStatus()) return;
+  if (!socket || !socket.connected) {
+    showStatus('Not connected to server. Please wait...', 'error');
+    return;
+  }
 
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder = new MediaRecorder(stream, {
+      mimeType: 'audio/webm',
+      audioBitsPerSecond: 128000
+    });
     audioChunks = [];
+    currentTranscript = '';
 
     // Set up audio visualization
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -85,17 +129,30 @@ startBtn.addEventListener('click', async () => {
       animationFrame = requestAnimationFrame(updateVisualization);
     }
 
-    mediaRecorder.ondataavailable = (event) => {
-      audioChunks.push(event.data);
+    mediaRecorder.ondataavailable = async (event) => {
+      if (event.data.size > 0) {
+        audioChunks.push(event.data);
+        // Convert blob to base64
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64data = reader.result.split(',')[1];
+          socket.emit('audio-chunk', {
+            audioData: base64data,
+            language: languageSelect.value
+          });
+        };
+        reader.readAsDataURL(event.data);
+      }
     };
 
     mediaRecorder.onstop = () => {
-      const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+      const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
       transcribeAudio(audioBlob);
       cancelAnimationFrame(animationFrame);
     };
 
-    mediaRecorder.start();
+    // Start recording with 3-second chunks
+    mediaRecorder.start(3000);
     isRecording = true;
     
     startBtn.disabled = true;
@@ -123,7 +180,7 @@ stopBtn.addEventListener('click', () => {
     recordingIndicator.classList.remove('active');
     audioVisualization.classList.remove('active');
     
-    showStatus('Recording stopped. Processing...', 'success');
+    showStatus('Recording stopped. Processing final transcription...', 'success');
   }
 });
 
@@ -197,7 +254,9 @@ async function transcribeAudio(audioBlob) {
     // First upload the audio file
     const uploadResponse = await fetch('http://localhost:3000/api/transcription/upload', {
       method: 'POST',
-      body: formData
+      body: formData,
+      mode: 'cors',
+      credentials: 'include'
     });
     
     if (!uploadResponse.ok) {
@@ -217,7 +276,9 @@ async function transcribeAudio(audioBlob) {
       body: JSON.stringify({
         filePath: uploadData.filePath,
         language: language
-      })
+      }),
+      mode: 'cors',
+      credentials: 'include'
     });
     
     if (!transcribeResponse.ok) {
@@ -248,21 +309,23 @@ copyBtn.addEventListener('click', async () => {
   }
 });
 
-// Save as file
+// Save button
 saveBtn.addEventListener('click', async () => {
-  if (outputText.value) {
-    try {
-      const result = await window.electronAPI.saveText(outputText.value);
-      if (result.success) {
-        showStatus('Text saved successfully!', 'success');
-      } else {
-        showStatus('Failed to save text: ' + result.error, 'error');
-      }
-    } catch (error) {
-      showStatus('Failed to save text: ' + error.message, 'error');
-    }
-  } else {
+  const text = outputText.value;
+  if (!text) {
     showStatus('No text to save', 'error');
+    return;
+  }
+
+  try {
+    const result = await window.electronAPI.saveText(text);
+    if (result.success) {
+      showStatus('Text saved successfully!', 'success');
+    } else {
+      showStatus('Error saving text: ' + result.error, 'error');
+    }
+  } catch (error) {
+    showStatus('Error saving text: ' + error.message, 'error');
   }
 });
 
@@ -273,11 +336,5 @@ clearBtn.addEventListener('click', () => {
   fileInput.value = '';
   fileUploadButton.innerHTML = '📂 Choose File';
   showStatus('Text cleared', 'info');
-});
-
-// Initialize
-document.addEventListener('DOMContentLoaded', () => {
-  showStatus('Ready to transcribe audio! Start by recording or uploading a file.', 'info');
-  checkBackendStatus();
 });
 

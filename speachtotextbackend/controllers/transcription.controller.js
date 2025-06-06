@@ -26,6 +26,55 @@ exports.uploadAudio = (req, res) => {
   });
 };
 
+// Real-time audio chunk handler
+exports.handleAudioChunk = async (req, res) => {
+  console.log('Audio chunk received'); // Debug log
+  
+  if (!req.file) {
+    return res.status(400).json({ error: 'No audio chunk received' });
+  }
+
+  const { language } = req.body;
+  
+  if (!language) {
+    return res.status(400).json({ error: 'Language parameter is required' });
+  }
+
+  try {
+    const form = new FormData();
+    form.append('file', fs.createReadStream(req.file.path));
+    form.append('model', 'whisper-1');
+    form.append('language', language);
+
+    const response = await axios.post('https://api.openai.com/v1/audio/transcriptions', form, {
+      headers: {
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        ...form.getHeaders()
+      }
+    });
+
+    // Clean up the chunk file
+    fs.unlinkSync(req.file.path);
+
+    res.json({ 
+      transcript: response.data.text,
+      isPartial: true
+    });
+  } catch (error) {
+    console.error('Chunk transcription error:', error.response?.data || error.message);
+    
+    // Clean up the chunk file in case of error
+    if (fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    
+    res.status(500).json({ 
+      error: 'Failed to transcribe audio chunk',
+      details: error.response?.data || error.message
+    });
+  }
+};
+
 // Transcription handler using OpenAI Whisper API
 exports.transcribeAudio = async (req, res) => {
   console.log('Transcribe request received:', req.body); // Debug log
@@ -61,7 +110,10 @@ exports.transcribeAudio = async (req, res) => {
     // Clean up the uploaded file
     fs.unlinkSync(filePath);
 
-    res.json({ transcript: response.data.text });
+    res.json({ 
+      transcript: response.data.text,
+      isPartial: false
+    });
   } catch (error) {
     console.error('Transcription error:', error.response?.data || error.message);
     

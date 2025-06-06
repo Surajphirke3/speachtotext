@@ -1,5 +1,5 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
-const path = require('node:path');
+const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const path = require('path');
 const fs = require('fs');
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
@@ -7,31 +7,37 @@ if (require('electron-squirrel-startup')) {
   app.quit();
 }
 
-const createWindow = () => {
+let mainWindow;
+
+function createWindow() {
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
-    width: 1000,
+  mainWindow = new BrowserWindow({
+    width: 1200,
     height: 800,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
-      nodeIntegration: false,
+      nodeIntegration: true,
       contextIsolation: true,
-      webSecurity: true,
-      allowRunningInsecureContent: false
-    },
+      preload: path.join(__dirname, 'preload.js')
+    }
   });
 
-  // and load the index.html of the app.
-  mainWindow.loadFile(path.join(__dirname, 'index.html'));
-
-  // Open the DevTools.
-  mainWindow.webContents.openDevTools();
-};
+  // Get the absolute path to the index.html file
+  const indexPath = path.join(__dirname, 'index.html');
+  console.log('Loading index.html from:', indexPath);
+  
+  // Load the index.html file
+  mainWindow.loadFile(indexPath);
+  
+  // Open DevTools in development
+  if (process.env.NODE_ENV === 'development') {
+    mainWindow.webContents.openDevTools();
+  }
+}
 
 // Handle save text functionality
 ipcMain.handle('save-text', async (event, content) => {
   try {
-    const { filePath } = await mainWindow.webContents.showSaveDialog({
+    const { filePath } = await dialog.showSaveDialog(mainWindow, {
       title: 'Save Transcription',
       defaultPath: 'transcription.txt',
       filters: [{ name: 'Text Files', extensions: ['txt'] }]

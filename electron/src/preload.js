@@ -7,8 +7,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld(
   'electronAPI',
   {
-    saveText: (content) => ipcRenderer.invoke('save-text', content),
-    // Add any other IPC methods you need here
+    saveText: (content) => ipcRenderer.invoke('save-text', content)
   }
 );
 
