@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Speech to Text Pro</title>
+  <link rel="stylesheet" href="index.css">
+</head>
+
+<body>
+  <div class="container">
+    <h1>🎙️ Speech to Text </h1>
+
+    <section class="card">
+      <h2 class="section-title">Audio Input</h2>
+      
+      <div class="button-group">
+        <button id="start-recording" class="primary-button">
+          🎤 Start Recording
+        </button>
+        <button id="stop-recording" class="primary-button" disabled>
+          ⏹️ Stop Recording
+        </button>
+      </div>
+
+      <div class="recording-indicator" id="recording-indicator">
+        <div class="recording-dot"></div>
+        <span>Recording in progress...</span>
+      </div>
+
+      <div class="audio-visualization" id="audio-visualization">
+        <!-- Audio visualization bars will be generated here -->
+      </div>
+
+      <div class="divider">
+        <span>or</span>
+      </div>
+
+      <div class="drag-drop-zone" id="drop-zone">
+        <p>📁 Drag & drop your audio file here</p>
+        <p class="file-types">Supports MP3, WAV, M4A files</p>
+        <div class="file-upload-wrapper">
+          <input type="file" id="file-upload" class="file-input" accept=".mp3,.wav,.m4a" />
+          <div class="file-upload-button">
+            📂 Choose File
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 class="section-title">Select language</h2>
+      
+      <div class="select-wrapper">
+        <label for="language-select" style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #4a5568;">Language:</label>
+        <select id="language-select" class="select-input">
+          <option value="en">🇺🇸 English</option>
+          <option value="es">🇪🇸 Spanish</option>
+          <option value="fr">🇫🇷 French</option>
+          <option value="hi">🇮🇳 Hindi</option>
+          <option value="zh">🇨🇳 Mandarin</option>
+          <option value="de">🇩🇪 German</option>
+          <option value="it">🇮🇹 Italian</option>
+          <option value="pt">🇵🇹 Portuguese</option>
+          <option value="ru">🇷🇺 Russian</option>
+          <option value="ja">🇯🇵 Japanese</option>
+        </select>
+      </div>
+
+      <button id="transcribe-btn" class="primary-button" style="width: 100%;">
+        ✨ Start Transcription
+      </button>
+    </section>
+
+    <section class="card">
+      <div class="output-header">
+        <h2 class="section-title">Transcription Result</h2>
+        <div class="output-actions">
+          <button id="copy-btn" class="secondary-button">📋 Copy</button>
+          <button id="save-btn" class="secondary-button">💾 Save</button>
+          <button id="clear-btn" class="secondary-button">🗑️ Clear</button>
+        </div>
+      </div>
+      
+      <div class="transcription-container">
+        <textarea 
+          id="transcription-text" 
+          class="transcription-text"
+          placeholder="Your transcription will appear here... ✨"
+          rows="12"
+          readonly
+        ></textarea>
+      </div>
+      
+      <div id="status-message" class="status-message"></div>
+    </section>
+  </div>
+
+  <script src="render.js"></script>
+</body>
+</html>
