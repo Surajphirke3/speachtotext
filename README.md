@@ -70,7 +70,8 @@ WAV
 Other Whisper-supported formats
 
 ## Demo of project 
-interface 
+
+
 ![image](https://github.com/user-attachments/assets/051fce63-2861-40c5-a529-5de03e63bce6)  ![image](https://github.com/user-attachments/assets/fda2a326-ffa2-4fd5-a123-945b9e07e7c5)
 
 ![image](https://github.com/user-attachments/assets/03f1bdfb-e99c-4b9c-ab92-594a7e72d6ec)
