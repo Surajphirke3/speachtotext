@@ -68,3 +68,26 @@ MP3
 WAV
 
 Other Whisper-supported formats
+
+## Demo of project 
+interface 
+![image](https://github.com/user-attachments/assets/051fce63-2861-40c5-a529-5de03e63bce6)
+
+![image](https://github.com/user-attachments/assets/fda2a326-ffa2-4fd5-a123-945b9e07e7c5)
+
+![image](https://github.com/user-attachments/assets/03f1bdfb-e99c-4b9c-ab92-594a7e72d6ec)
+
+![image](https://github.com/user-attachments/assets/43a0c331-e1f7-483c-b275-e52ba011d9b4)
+
+![image](https://github.com/user-attachments/assets/38dfa91c-aec8-4496-a50e-a0d1f26e09a6)
+
+
+![image](https://github.com/user-attachments/assets/0873765a-fc07-4f48-8d7c-addc9fc1d7e2)
+
+
+
+
+
+
+
+
