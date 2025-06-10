@@ -73,8 +73,9 @@ Other Whisper-supported formats
 
 
 ![image](https://github.com/user-attachments/assets/051fce63-2861-40c5-a529-5de03e63bce6)  
-![image](https://github.com/user-attachments/assets/38dfa91c-aec8-4496-a50e-a0d1f26e09a6)
 ## Transcription Of audio file 
+![image](https://github.com/user-attachments/assets/38dfa91c-aec8-4496-a50e-a0d1f26e09a6)
+
 
 
 
