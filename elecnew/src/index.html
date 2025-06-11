@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Daily Call</title>
+    <style>
+      html, body {
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="call" style="width: 100%; height: 100%"></div>
+    <div id="controls" >
+      <button id="start">Start</button>
+      <button id="stop">Stop </button>
+    </div>
+    
+<div id="transcript">
+
+</div>
+  
+    <!-- Load Daily.js -->
+    <script crossorigin src="https://unpkg.com/@daily-co/daily-js"></script>
+    <script>
+      const callElement = document.getElementById('call');
+
+      // Create the call iframe
+      const callFrame = window.DailyIframe.createFrame(callElement, {
+        iframeStyle: {
+          position: 'absolute',
+          width: '100%',
+          height: '100%',
+          border: '0',
+        },
+      });
+
+      // Join your Daily call room
+      callFrame.join({ url: 'https://surajphirke.daily.co/OdpO75K50APhwpeAlezI',
+        token:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvIjp0cnVlLCJkIjoiYTBjMjBlZGEtNTk2Yi00NDI1LWIzMWMtOWRlZTBiYTBkZjQyIiwiaWF0IjoxNzQ5NjQ1NTE0fQ.o68wAspAIweMA312QPQ7Wy7XypkhvLEsa3elBEifiw4'
+       });
+
+       document.querySelector('#start').addEventListener('click', () => {
+  callFrame.startTranscription();
+});
+
+  document.querySelector('#stop').addEventListener('click', () => {
+  callFrame.stopTranscription();
+});
+
+callFrame.on('app-message', message => {
+  if (message?.fromId === 'transcription' && message.data?.is_final) {
+    const p = document.createElement('p');
+    p.textContent = `${message.data.user_name}: ${message.data.text}`;
+    document.querySelector('#transcript').appendChild(p);
+  }
+});
+
+
+    </script>
+  </body>
+</html>
